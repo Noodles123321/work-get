@@ -64,6 +64,17 @@ npm run build     # 产物在 .output/chrome-mv3
 
 打开 BOSS / 猎聘 / 智联 / 鱼泡的搜索列表页，正常往下滚。侧边栏「岗位」页会实时出现岗位，带平台标签、薪资、匹配分。
 
+### 6.（可选）启用「推送到 DSH」
+
+需要 DSH（DeepSeek Harness）在本机运行。一条命令装好桥插件，然后重启 DSH：
+
+```bash
+node scripts/install-dsh-plugin.mjs          # 改 profile 清单并 pnpm install
+node scripts/install-dsh-plugin.mjs --check  # 只读复核
+```
+
+装完重启 DSH → `node dsh-plugin/scripts/selfcheck.mjs` 应输出两个 ✔ → 把 `.dsh-bridge/token.txt` 的内容填进扩展「设置 → DSH 侧」。详见 [docs/dsh-bridge.md](docs/dsh-bridge.md)。没装也不影响其它功能，只是推送按钮会提示「连不上 DSH 桥」。
+
 ---
 
 ## 三、日常工作流

@@ -20,10 +20,31 @@ Chrome/Edge 侧边栏
 
 插件目录：`E:\DP_HANS\Work_GET\dsh-plugin`（纯 ESM、零依赖）。
 
-### 步骤
+### 推荐：一条命令
 
-1. 确认 DSH 已关闭。
-2. 在用户 profile 的 `package.json`（`C:\Users\NoodlesN\.dsh\profiles\desktop\package.json`）里加依赖：
+```bash
+node scripts/install-dsh-plugin.mjs            # 备份 → 改清单 → pnpm install → 校验
+node scripts/install-dsh-plugin.mjs --check    # 只读检查（不改文件）
+node scripts/install-dsh-plugin.mjs --rollback # 还原备份、删掉 link
+```
+
+脚本做的事，按顺序：
+
+1. 备份 profile 的 `package.json`、`pnpm-lock.yaml` 为 `*.bak-workget`（已存在则**不覆盖**）
+2. 幂等写入依赖 `"dsh-workget-bridge": "file:E:/DP_HANS/Work_GET/dsh-plugin"` 与 `dsh.profile.bundles` 条目
+3. 快照 `node_modules` 顶层目录名到 `.dsh-bridge/install/node-modules-before.txt`
+4. 在 profile 目录跑 `corepack pnpm@11.28.5 install`（版本取自该 profile 自己的 `.modules.yaml`，与 DSH 插件管理器一致；`nodeLinker: hoisted`）
+5. 再快照一次并 diff：**若本次安装删掉了别的包，会明确列出来并提示先回滚**
+6. 校验 `node_modules/dsh-workget-bridge/package.json` 可读
+
+> **为什么要提权**：写入的是 `C:\Users\NoodlesN\.dsh\profiles\desktop`，在工作区之外。沙箱内会报 `EPERM`；用提权终端跑，或在 DSH 里用 `danger-full-access` 批准一次。
+>
+> **为什么可能删除别的包**：该 profile 是 hoisted 布局，`pnpm install` 会按 `package.json` 重算整棵树；上一次 DSH 插件管理器的日志就是 `Packages: +1 -31`。所以脚本先备份、后 diff，出问题一条命令回滚。
+
+### 手动等价步骤（不想跑脚本时）
+
+1. 关掉 DSH。
+2. 在 `C:\Users\NoodlesN\.dsh\profiles\desktop\package.json` 的 `dependencies` 加：
 
    ```json
    "dependencies": {
@@ -31,15 +52,19 @@ Chrome/Edge 侧边栏
    }
    ```
 
-3. 同文件里把包名加进 `dsh.profile.bundles` 数组（和 `dsh-course-notes` 并列）：
+3. 同文件把包名加进 `dsh.profile.bundles`（和 `dsh-course-notes` 并列）。
+4. 在 profile 目录执行 `corepack pnpm@11.28.5 install`。
+5. 启动 DSH。
 
-   ```json
-   "bundles": ["dsh-course-notes", "dsh-workget-bridge"]
-   ```
+### 降级方案：junction（pnpm 不可用时）
 
-4. 安装并启动 DSH。
+```powershell
+New-Item -ItemType Junction `
+  -Path   "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-workget-bridge" `
+  -Target "E:\DP_HANS\Work_GET\dsh-plugin"
+```
 
-> **为什么可能要提权**：第 2 步需要 pnpm 在 profile 目录建符号链接，沙箱下会报 `EPERM: operation not permitted, mkdir 'C:\Users\NoodlesN\AppData\Local\node\corepack\v1'`。此时用 `danger-full-access` 跑一次安装，或让插件管理器（DSH 界面里的插件页）去装——它就是做这件事的。
+清单里的依赖条目照常写（下次 pnpm install 会把它正规化）。缺点：DSH 插件管理器下一次安装时可能把这条 link 当成多余目录清掉，需要重做。
 
 ### 验证
 
@@ -56,6 +81,18 @@ node E:/DP_HANS/Work_GET/dsh-plugin/scripts/selftest.mjs
 ```
 
 它会起一个 port 0 的临时服务 + 假 deliver，跑 35 项断言（鉴权、限长、去重、快照、清洗、计数）。
+
+---
+
+## 一·五、第一次使用清单
+
+1. 装插件（上一节）→ **重启 DSH**（新插件只在启动时加载）
+2. `node dsh-plugin/scripts/selfcheck.mjs` → 两个 ✔
+3. `npm run build` → `chrome://extensions` 里「加载已解压的扩展程序」选 `.output/chrome-mv3`（已加载过就点「重新加载」）
+4. 打开 `E:\DP_HANS\Work_GET\.dsh-bridge\token.txt`，整行复制
+5. 侧边栏 → 设置 → **DSH 侧** → 粘 token →「保存 DSH 设置」→「测试连接」应显示端口与计数
+6. 登录平台，打开搜索结果列表页 → 侧边栏出现岗位 → 点「推送到 DSH」→ 确认
+7. 切到 DSH：新会话标题 `岗位推送 · …｜N 个`，首条消息是岗位表 + 4 条指令；直接追问即可
 
 ---
 

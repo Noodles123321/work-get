@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearAll, getJob, getSettings, saveDshBridge, upsertJobs } from '../src/db/repo';
 import { normalizeJob } from '../src/shared/normalize';
 import { DEFAULT_DSH_BRIDGE, type DshBridgeSettings, type Job, type RawJob } from '../src/shared/types';
-import { buildPushPayload, describePushError, normalizeBaseUrl, pushJobs } from '../src/ui/dsh-bridge';
+import { activeText, buildPushPayload, describePushError, normalizeBaseUrl, pushJobs } from '../src/ui/dsh-bridge';
 
 const NOW = 1_760_000_000_000;
 
@@ -69,6 +69,29 @@ describe('normalizeBaseUrl', () => {
   });
 });
 
+describe('activeText', () => {
+  const DAY = 86_400_000;
+
+  it('今天采集到的显示今日活跃', () => {
+    expect(activeText(NOW - 3600_000, NOW)).toBe('今日活跃');
+  });
+
+  it('按天数分档', () => {
+    expect(activeText(NOW - 2 * DAY, NOW)).toBe('3 天内活跃');
+    expect(activeText(NOW - 5 * DAY, NOW)).toBe('7 天内活跃');
+    expect(activeText(NOW - 20 * DAY, NOW)).toBe('30 天内活跃');
+  });
+
+  it('超过 30 天或缺时间戳时不给文本', () => {
+    expect(activeText(NOW - 40 * DAY, NOW)).toBeUndefined();
+    expect(activeText(undefined, NOW)).toBeUndefined();
+  });
+
+  it('未来时间戳按今日活跃处理', () => {
+    expect(activeText(NOW + 5 * DAY, NOW)).toBe('今日活跃');
+  });
+});
+
 describe('buildPushPayload', () => {
   it('按 maxJobs 截断并报告跳过数', () => {
     const jobs = [makeJob({ platformJobId: 'a' }), makeJob({ platformJobId: 'b' }), makeJob({ platformJobId: 'c' })];
@@ -96,6 +119,13 @@ describe('buildPushPayload', () => {
     expect(picked[0]?.ruleScore).toBe(81);
     expect(picked[0]?.salary?.raw).toBe('25-35K');
     expect(picked[0]?.salary?.min).toBe(25000);
+  });
+
+  it('把 hrActiveAt 翻成插件认识的 hrActiveText', () => {
+    const recent = { ...makeJob(), hrActiveAt: Date.now() - 3600_000 };
+    const stale = { ...makeJob(), hrActiveAt: undefined };
+    expect(buildPushPayload([recent], 10).jobs[0]?.hrActiveText).toBe('今日活跃');
+    expect(buildPushPayload([stale], 10).jobs[0]?.hrActiveText).toBeUndefined();
   });
 
   it('maxJobs 非法时退回 20', () => {

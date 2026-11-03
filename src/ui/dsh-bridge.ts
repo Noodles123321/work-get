@@ -66,6 +66,17 @@ export function normalizeBaseUrl(raw: string): string {
   return withScheme.replace(/\/+$/, '');
 }
 
+/** 把「最后一次采集到招聘者活跃」的时间戳翻成人话；插件侧只认文本。 */
+export function activeText(at: number | undefined, now = Date.now()): string | undefined {
+  if (!at || !Number.isFinite(at)) return undefined;
+  const days = Math.floor((now - at) / 86_400_000);
+  if (days <= 0) return '今日活跃';
+  if (days <= 3) return '3 天内活跃';
+  if (days <= 7) return '7 天内活跃';
+  if (days <= 30) return '30 天内活跃';
+  return undefined;
+}
+
 /** 从数据库的 Job 里裁出要推的字段；只保留有标题和链接的。 */
 export function buildPushPayload(jobs: Job[], maxJobs: number): { jobs: PushJob[]; skipped: number } {
   const limit = Number.isFinite(maxJobs) && maxJobs > 0 ? Math.floor(maxJobs) : 20;
@@ -95,6 +106,7 @@ export function buildPushPayload(jobs: Job[], maxJobs: number): { jobs: PushJob[
       url: job.url,
       ruleScore: job.ruleScore,
       description: job.description,
+      hrActiveText: activeText(job.hrActiveAt),
     });
   }
 
