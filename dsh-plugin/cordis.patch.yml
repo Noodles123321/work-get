@@ -1,0 +1,5 @@
+# dsh-workget-bridge bundle patch：把 host 插件行插入 profile 的插件清单。
+# 用插件管理器以 file: 规格安装后自动应用；不要在 profile patch 里重复 insert 同一 id。
+- insert:
+    - id: dsh-workget-bridge
+      name: 'dsh-workget-bridge'

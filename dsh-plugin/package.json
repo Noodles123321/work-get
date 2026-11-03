@@ -1,0 +1,15 @@
+{
+  "name": "dsh-workget-bridge",
+  "version": "0.1.0",
+  "description": "Work GET 桥：接收浏览器扩展推送的岗位，在 DSH 里开一个新会话做评估与话术。",
+  "type": "module",
+  "main": "lib/index.js",
+  "private": true,
+  "license": "MIT",
+  "keywords": ["dsh", "dsh-plugin", "jobs", "job-hunting", "workget"],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
