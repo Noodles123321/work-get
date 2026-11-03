@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   clearAll,
+  purgeIncompleteJobs,
   clearRiskSignals,
   getQuota,
   getRiskSignals,
@@ -390,6 +391,17 @@ export default function SettingsView() {
       <section className="card danger">
         <h3>数据</h3>
         <p className="muted small">所有数据都在本机 IndexedDB 里，卸载扩展即清空。换电脑前先导出。</p>
+        <button
+          type="button"
+          className="btn ghost"
+          onClick={async () => {
+            if (!confirm('清理公司/城市都没采到的岗位记录？之后重新刷列表即可补回。')) return;
+            const removed = await purgeIncompleteJobs();
+            alert(removed > 0 ? `已清理 ${removed} 条残缺记录` : '没有需要清理的记录');
+          }}
+        >
+          清理字段残缺的岗位
+        </button>
         <button
           type="button"
           className="btn ghost"

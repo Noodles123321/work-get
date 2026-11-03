@@ -174,3 +174,51 @@ describe('容错', () => {
     expect(broken.extractList(document)).toEqual([]);
   });
 });
+
+describe('真实站点结构（BUG 回归）', () => {
+  it('岗位 ID 里的连字符能正确抠出', () => {
+    const spec = { from: 'href' as const, pattern: '/job_detail/([0-9A-Za-z~_-]+)\\.html' };
+    expect(extractJobId('https://www.zhipin.com/job_detail/39906bd550b85e9b0nJz2d-5FVFQ.html', spec)).toBe(
+      '39906bd550b85e9b0nJz2d-5FVFQ',
+    );
+  });
+
+  it('嵌套的同名卡片容器只解析一次', () => {
+    document.body.innerHTML = `
+      <ul>
+        <li class="job-card-box">
+          <div class="job-card-body">
+            <div class="job-card-left">
+              <a class="job-link" href="/job_detail/a-1.html"><span class="job-name">岗位A</span></a>
+            </div>
+          </div>
+        </li>
+      </ul>`;
+    const nested = createAdapter({
+      ...CONFIG,
+      listItem: ['[class*="job-card"]'],
+      jobId: { from: 'href', pattern: '/job_detail/([0-9A-Za-z~_-]+)\\.html' },
+    });
+    const jobs = nested.extractList(document);
+    expect(jobs).toHaveLength(1);
+    expect(jobs[0]!.platformJobId).toBe('a-1');
+    expect(jobs[0]!.title).toBe('岗位A');
+  });
+
+  it('同一链接的兜底 ID 与位置无关', () => {
+    document.body.innerHTML = `
+      <ul>
+        <li class="job-card"><a class="job-link" href="/other-1.html"><span class="job-name">甲</span></a></li>
+        <li class="job-card"><a class="job-link" href="/other-2.html"><span class="job-name">乙</span></a></li>
+      </ul>`;
+    const first = adapter.extractList(document)[0]!.platformJobId;
+    document.body.innerHTML = `
+      <ul>
+        <li class="job-card"><a class="job-link" href="/other-3.html"><span class="job-name">丙</span></a></li>
+        <li class="job-card"><a class="job-link" href="/other-1.html"><span class="job-name">甲</span></a></li>
+      </ul>`;
+    const second = adapter.extractList(document)[1]!.platformJobId;
+    expect(first).toBe(second);
+  });
+});
+

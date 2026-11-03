@@ -33,7 +33,7 @@
   "link": { "selector": [".job-name", ".job-card-body a", "a"], "attr": "href" },
   "jobId": {
     "from": "href",
-    "pattern": "/job_detail/([0-9A-Za-z~_]+)\\.html"
+    "pattern": "/job_detail/([0-9A-Za-z~_-]+)\\.html"
   },
   "apply": {
     "button": [".start-chat-btn", ".op-btn-chat", "button[class*='startchat']", "a[class*='start-chat']", "[class*='btn-start']"],

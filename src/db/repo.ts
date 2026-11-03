@@ -355,3 +355,17 @@ export async function clearAll(): Promise<void> {
     await Promise.all([db.jobs.clear(), db.applications.clear(), db.matches.clear(), db.quotas.clear(), db.kv.clear()]);
   });
 }
+
+/**
+ * 清理字段残缺的记录：公司/城市都没采到的岗位（通常是选择器没命中时留下的），
+ * 它们还会污染去重键，重采前清掉最省事。
+ */
+export async function purgeIncompleteJobs(): Promise<number> {
+  const ids: string[] = [];
+  await db.jobs.each((job) => {
+    if (job.company === '未知公司' || job.city === '未知') ids.push(job.id);
+  });
+  if (ids.length === 0) return 0;
+  await db.jobs.bulkDelete(ids);
+  return ids.length;
+}

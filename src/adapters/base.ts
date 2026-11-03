@@ -131,15 +131,15 @@ export function extractJobId(link: string, spec: PlatformConfig['jobId']): strin
   }
 }
 
-/** 用标题+公司兜底生成稳定的本地 ID，保证没有 ID 的页面也能入库。 */
-function fallbackId(job: { title?: string; company?: string; href?: string }, index: number): string {
-  const seed = `${job.title ?? ''}|${job.company ?? ''}|${job.href ?? ''}`;
+/** 用链接（优先）或标题+公司兜底生成稳定的本地 ID，保证没有 ID 的页面也能入库。 */
+function fallbackId(job: { title?: string; company?: string; href?: string }): string {
+  const seed = job.href ? `url:${job.href}` : `${job.title ?? ''}|${job.company ?? ''}`;
   let hash = 0x811c9dc5;
   for (let i = 0; i < seed.length; i++) {
     hash ^= seed.charCodeAt(i);
     hash = Math.imul(hash, 0x01000193);
   }
-  return `h${(hash >>> 0).toString(36)}${index % 7}`;
+  return `h${(hash >>> 0).toString(36)}`;
 }
 
 export function buildRawJob(
@@ -163,7 +163,7 @@ export function buildRawJob(
   const jobId =
     extractJobId(rawHref || url, config.jobId) ??
     (config.jobId.attr ? (safeQuery(root, config.jobId.selector ?? '')?.getAttribute(config.jobId.attr) ?? undefined) : undefined) ??
-    fallbackId({ title, company: pickField(root, fields.company), href: rawHref }, index);
+    fallbackId({ title, company: pickField(root, fields.company), href: rawHref });
 
   const tags = pickAllFields(root, fields.tags);
   const raw: RawJob = {
@@ -255,14 +255,29 @@ export function createAdapter(config: PlatformConfig, deps: AdapterDeps = {}): P
     extractList(doc: Document, options: ExtractOptions = {}): RawJob[] {
       const limit = options.limit ?? 120;
       const now = options.now ?? Date.now();
-      const items: Element[] = [];
+      const matched: Element[] = [];
       for (const selector of config.listItem) {
         const found = safeQueryAll(doc, selector);
         if (found.length > 0) {
-          items.push(...found);
+          matched.push(...found);
           break;
         }
       }
+      if (matched.length === 0) return [];
+      // 真实站点的卡片常是嵌套结构（.job-card-box > .job-card-body > .job-card-left），
+      // `[class*='job-card']` 会把同一张卡匹配多次 → 只保留最外层节点，并要求含标题元素。
+      const pool = new Set(matched);
+      const titleRule = config.fields.title;
+      const titleSelectors = titleRule ? ruleSelectors(titleRule).selectors.filter(Boolean) : [];
+      const items = matched.filter((el) => {
+        let parent = el.parentElement;
+        while (parent) {
+          if (pool.has(parent)) return false;
+          parent = parent.parentElement;
+        }
+        if (titleSelectors.length === 0) return true;
+        return titleSelectors.some((selector) => safeQuery(el, selector) !== null);
+      });
       if (items.length === 0) return [];
       const out: RawJob[] = [];
       const seen = new Set<string>();

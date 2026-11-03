@@ -10,6 +10,7 @@ import {
   hasApplied,
   incrementQuota,
   listApplications,
+  purgeIncompleteJobs,
   queryJobs,
   savePreferences,
   setApplicationState,
@@ -197,8 +198,7 @@ describe('投递记录', () => {
   });
 });
 
-describe('stats', () => {
-  it('统计岗位与投递', async () => {
+describe('stats', () => {  it('统计岗位与投递', async () => {
     await upsertJobs([raw(), raw({ platformJobId: 'j2', title: '后端开发工程师' })]);
     await setJobStatus('boss:j2', 'starred');
     await addApplication(app());
@@ -210,5 +210,25 @@ describe('stats', () => {
     expect(s.byPlatform.boss).toBe(2);
     expect(s.replies).toBe(1);
     expect(s.interviews).toBe(1);
+  });
+});
+
+describe('purgeIncompleteJobs', () => {
+  it('只删公司/城市都缺的记录', async () => {
+    await upsertJobs([
+      raw(),
+      raw({ platformJobId: 'j2', title: '缺字段岗位', company: undefined, city: undefined }),
+    ]);
+    expect(await countJobs()).toBe(2);
+    expect(await purgeIncompleteJobs()).toBe(1);
+    expect(await countJobs()).toBe(1);
+    const left = await queryJobs({});
+    expect(left[0]!.company).toBe('某某科技有限公司');
+  });
+
+  it('没有残缺记录时返回 0', async () => {
+    await upsertJobs([raw()]);
+    expect(await purgeIncompleteJobs()).toBe(0);
+    expect(await countJobs()).toBe(1);
   });
 });

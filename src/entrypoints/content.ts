@@ -145,6 +145,46 @@ async function bootstrap(): Promise<void> {
 }
 
 /** 选择器自检：把每条规则的命中数报给设置页，方便平台改版时定位。 */
+function domHint(adapter: PlatformAdapter): unknown {
+  const cfg = adapter.config;
+  let card: Element | null = null;
+  for (const selector of cfg.listItem) {
+    let found: Element[] = [];
+    try {
+      found = Array.from(document.querySelectorAll(selector));
+    } catch {
+      continue;
+    }
+    if (found.length === 0) continue;
+    const titleSelectors = toSelectors(cfg.fields.title);
+    const withTitle = found.find((el) =>
+      titleSelectors.some((s) => {
+        try {
+          return el.querySelector(s) !== null;
+        } catch {
+          return false;
+        }
+      }),
+    );
+    card = withTitle ?? found[0] ?? null;
+    break;
+  }
+  if (!card) return null;
+  const descendants = Array.from(card.querySelectorAll('*'))
+    .slice(0, 60)
+    .map((el) => ({
+      tag: el.tagName.toLowerCase(),
+      cls: (el.getAttribute('class') ?? '').slice(0, 80),
+      text: (el.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 40),
+    }));
+  return {
+    tag: card.tagName.toLowerCase(),
+    className: card.getAttribute('class') ?? '',
+    descendants,
+    html: card.outerHTML.replace(/\s+/g, ' ').slice(0, 3500),
+  };
+}
+
 function selfTest(adapter: PlatformAdapter): unknown {
   const cfg = adapter.config;
   const count = (selector: string): number => {
@@ -178,6 +218,7 @@ function selfTest(adapter: PlatformAdapter): unknown {
       send: report(cfg.apply.send),
     },
     sample: adapter.extractList(document, { limit: 2 }),
+    domHint: domHint(adapter),
   };
 }
 
