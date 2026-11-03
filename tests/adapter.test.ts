@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createAdapter, extractJobId, type PlatformConfig } from '../src/adapters/base';
+import { DEFAULT_CONFIGS } from '../src/adapters/registry';
 
 const CONFIG: PlatformConfig = {
   id: 'boss',
@@ -176,6 +177,37 @@ describe('容错', () => {
 });
 
 describe('真实站点结构（BUG 回归）', () => {
+  const card = (id: string, title: string, location: string, company: string): string => `
+    <div class="job-card-wrap">
+      <li class="job-card-box">
+        <div class="job-info">
+          <div class="job-title clearfix">
+            <a href="/job_detail/${id}.html" class="job-name">${title}</a>
+            <span class="job-salary">-K</span>
+          </div>
+          <ul class="tag-list"><li>3-5年</li><li>本科</li><li>数据分析</li></ul>
+        </div>
+        <div class="job-card-footer">
+          <a href="/gongsi/x.html" class="boss-info"><span class="boss-name">${company}</span></a>
+          <span class="company-location"> ${location} </span>
+        </div>
+      </li>
+    </div>`;
+
+  it('按 BOSS 现网结构取到真实 ID / 公司 / 城市 / 经验', () => {
+    document.body.innerHTML = `<ul class="job-list-box">
+      ${card('39906bd550b85e9b0nJz2d-5FVFQ', 'AI数据运营-双休', '长沙·岳麓区·岳麓大学城', '长沙探月科技有限公司')}
+      ${card('5287ac9a4e63211903Jy29q7GFBZ', '资深商业分析师', '杭州·西湖区', '某某数据科技')}
+    </ul>`;
+    const jobs = createAdapter(DEFAULT_CONFIGS.boss).extractList(document);
+    expect(jobs).toHaveLength(2);
+    expect(jobs[0]!.platformJobId).toBe('39906bd550b85e9b0nJz2d-5FVFQ');
+    expect(jobs[0]!.company).toBe('长沙探月科技有限公司');
+    expect(jobs[0]!.city).toBe('长沙·岳麓区·岳麓大学城');
+    expect(jobs[0]!.experienceRaw).toBe('3-5年');
+    expect(jobs[0]!.educationRaw).toBe('本科');
+  });
+
   it('岗位 ID 里的连字符能正确抠出', () => {
     const spec = { from: 'href' as const, pattern: '/job_detail/([0-9A-Za-z~_-]+)\\.html' };
     expect(extractJobId('https://www.zhipin.com/job_detail/39906bd550b85e9b0nJz2d-5FVFQ.html', spec)).toBe(

@@ -177,10 +177,24 @@ function domHint(adapter: PlatformAdapter): unknown {
       cls: (el.getAttribute('class') ?? '').slice(0, 80),
       text: (el.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 40),
     }));
+  // 薪资数字有时被站点用伪元素/属性渲染，textContent 只剩 "-K"；这里把能读到的都摊开。
+  const salaryEl = card.querySelector('.job-salary');
+  const salaryProbe = salaryEl
+    ? {
+        html: salaryEl.outerHTML.slice(0, 600),
+        text: salaryEl.textContent ?? '',
+        innerText: (salaryEl as HTMLElement).innerText ?? '',
+        attrs: Array.from(salaryEl.attributes).map((a) => `${a.name}=${a.value}`),
+        before: getComputedStyle(salaryEl, '::before').content,
+        after: getComputedStyle(salaryEl, '::after').content,
+        parentHtml: (salaryEl.parentElement?.outerHTML ?? '').slice(0, 900),
+      }
+    : null;
   return {
     tag: card.tagName.toLowerCase(),
     className: card.getAttribute('class') ?? '',
     descendants,
+    salaryProbe,
     html: card.outerHTML.replace(/\s+/g, ' ').slice(0, 3500),
   };
 }
