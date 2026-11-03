@@ -1,0 +1,12 @@
+node_modules/
+.npm-cache/
+.wxt/
+.output/
+stats.html
+*.log
+coverage/
+dist/
+.DS_Store
+Thumbs.db
+# DSH 桥运行态（token / 日志 / 快照），不入库
+.dsh-bridge/

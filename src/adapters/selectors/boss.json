@@ -1,0 +1,43 @@
+{
+  "id": "boss",
+  "label": "BOSS直聘",
+  "hosts": ["zhipin.com"],
+  "listUrlPattern": "/(web/geek/job|web/geek/jobs|job_detail)",
+  "detailUrlPattern": "/job_detail/",
+  "listItem": ["ul.job-list-box > li", "li.job-card-wrapper", ".job-card-wrapper", "[class*='job-card']"],
+  "listContainer": ["ul.job-list-box", ".job-list-container", "body"],
+  "fields": {
+    "title": [".job-name", ".job-card-body .job-title", "[class*='job-name']", "[class*='job-title']"],
+    "company": [".company-name", ".company-name a", "[class*='company-name']"],
+    "salary": [".salary", ".job-salary", "[class*='salary']"],
+    "city": [".job-area", "[class*='job-area']"],
+    "experience": [".tag-list li:nth-child(1)", "[class*='job-info'] [class*='tag']:nth-child(1)"],
+    "education": [".tag-list li:nth-child(2)", "[class*='job-info'] [class*='tag']:nth-child(2)"],
+    "tags": { "selector": [".tag-list li", "[class*='tag-list'] li", ".job-tags span"], "all": true },
+    "hrName": [".info-public", ".job-card-left .info-public"],
+    "hrActive": [".info-public em", ".job-card-left .info-public em"],
+    "description": [".job-detail-section .job-sec-text", "[class*='job-sec-text']", ".job-detail-section"]
+  },
+  "detailFields": {
+    "title": [".job-banner .name h1", ".job-name", "[class*='job-title']"],
+    "company": [".job-banner .company-info a", ".company-info a", "[class*='company-name']"],
+    "salary": [".job-banner .salary", ".salary"],
+    "city": [".job-banner .text-city", ".location-address", "[class*='job-area']"],
+    "experience": [".job-banner .text-experiece", ".job-require .text-experiece"],
+    "education": [".job-banner .text-degree", ".job-require .text-degree"],
+    "tags": { "selector": [".job-keyword-list li", ".job-tags span"], "all": true },
+    "hrName": [".job-boss-info .name", ".boss-info .name"],
+    "hrActive": [".job-boss-info .name", ".boss-info .name"],
+    "description": [".job-detail-section .job-sec-text", "[class*='job-sec-text']", ".job-detail-section"]
+  },
+  "link": { "selector": [".job-name", ".job-card-body a", "a"], "attr": "href" },
+  "jobId": {
+    "from": "href",
+    "pattern": "/job_detail/([0-9A-Za-z~_]+)\\.html"
+  },
+  "apply": {
+    "button": [".start-chat-btn", ".op-btn-chat", "button[class*='startchat']", "a[class*='start-chat']", "[class*='btn-start']"],
+    "input": [".chat-input", "#chat-input-el", "[contenteditable='true']", "textarea[class*='input']"],
+    "send": [".send-message", "[class*='btn-send']", "button[class*='send']"]
+  }
+}

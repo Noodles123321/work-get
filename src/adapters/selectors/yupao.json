@@ -1,0 +1,39 @@
+{
+  "id": "yupao",
+  "label": "鱼泡网",
+  "hosts": ["yupao.com"],
+  "listUrlPattern": "/(job|jobs|search|list)",
+  "detailUrlPattern": "/job/\\d+|/jobs/\\d+",
+  "listItem": ["[class*='job-item']", ".job-list-item", "li[class*='item']", "[class*='job-list'] > div"],
+  "listContainer": ["[class*='job-list']", "body"],
+  "fields": {
+    "title": [".job-title", "[class*='job-title']", "[class*='title']"],
+    "company": [".company-name", "[class*='company']", "[class*='shop-name']"],
+    "salary": [".salary", "[class*='salary']", "[class*='price']", "[class*='pay']"],
+    "city": [".address", "[class*='address']", "[class*='area']"],
+    "experience": ["[class*='exp']"],
+    "education": ["[class*='edu']"],
+    "tags": { "selector": ["[class*='tag'] span", "[class*='label'] span"], "all": true },
+    "hrName": ["[class*='contact'] [class*='name']", "[class*='boss-name']"],
+    "hrActive": ["[class*='active']"],
+    "description": ["[class*='desc']", "[class*='detail']"],
+    "extra_workType": ["[class*='work-type']", "[class*='type']"]
+  },
+  "detailFields": {
+    "title": ["[class*='job-title']", "h1"],
+    "company": ["[class*='company']"],
+    "salary": ["[class*='salary']", "[class*='price']"],
+    "city": ["[class*='address']"],
+    "description": ["[class*='desc']", "[class*='detail']"]
+  },
+  "link": { "selector": ["[class*='job-title'] a", "a"], "attr": "href" },
+  "jobId": {
+    "from": "href",
+    "pattern": "/(?:job|jobs)/(\\d+)"
+  },
+  "apply": {
+    "button": ["[class*='contact']", "[class*='chat']", "[class*='apply']", "[class*='call']"],
+    "input": ["textarea", "[contenteditable='true']", "[class*='input']"],
+    "send": ["[class*='send']", "button[class*='submit']"]
+  }
+}

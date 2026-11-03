@@ -1,0 +1,38 @@
+{
+  "id": "zhaopin",
+  "label": "智联招聘",
+  "hosts": ["zhaopin.com"],
+  "listUrlPattern": "/(sou|job|search)",
+  "detailUrlPattern": "/jobdetail/",
+  "listItem": [".joblist-box__item", "[class*='joblist-box__item']", ".joblist-item", "[class*='joblist-box'] > div"],
+  "listContainer": [".joblist-box", ".job-list", "body"],
+  "fields": {
+    "title": [".iteminfo__line1__jobname", "[class*='jobname']", "[class*='job-title']"],
+    "company": [".iteminfo__line2__comp-name", "[class*='comp-name']"],
+    "salary": [".iteminfo__line1__salary", "[class*='salary']"],
+    "city": [".iteminfo__line2__jobdesc--address", ".iteminfo__line2__jobdesc__address", "[class*='address']"],
+    "experience": [".iteminfo__line2__jobdesc--require", "[class*='jobdesc'] span:nth-child(1)"],
+    "education": [".iteminfo__line2__jobdesc--education", "[class*='jobdesc'] span:nth-child(2)"],
+    "tags": { "selector": [".iteminfo__line3__welfare span", "[class*='welfare'] span", "[class*='tag'] span"], "all": true },
+    "hrName": [".iteminfo__line2__comp-name + span", "[class*='recruiter']"],
+    "hrActive": [".iteminfo__line2__active", "[class*='active-time']"],
+    "description": [".describtion", "[class*='describtion']", "[class*='job-detail']"]
+  },
+  "detailFields": {
+    "title": [".summary-plane__title", "h1[class*='title']", "[class*='job-name']"],
+    "company": [".company__title", "[class*='company-name']"],
+    "salary": [".summary-plane__salary", "[class*='salary']"],
+    "city": [".summary-plane__info li:nth-child(1)", "[class*='address']"],
+    "description": [".describtion__detail-content", "[class*='describtion']"]
+  },
+  "link": { "selector": [".iteminfo__line1__jobname", "a"], "attr": "href" },
+  "jobId": {
+    "from": "href",
+    "pattern": "/jobdetail/([0-9A-Za-z]+)\\.htm"
+  },
+  "apply": {
+    "button": [".btn-apply", "button[class*='apply']", "[class*='btn-sendresume']", "[class*='contact']"],
+    "input": [".chat-input", "[contenteditable='true']", "textarea"],
+    "send": [".btn-send", "button[class*='send']"]
+  }
+}

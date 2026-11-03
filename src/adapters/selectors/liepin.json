@@ -1,0 +1,38 @@
+{
+  "id": "liepin",
+  "label": "猎聘",
+  "hosts": ["liepin.com"],
+  "listUrlPattern": "/(zhaopin|job|a/|sojob)",
+  "detailUrlPattern": "/job/\\d+\\.shtml",
+  "listItem": [".job-card-pc-container", ".job-card", ".job-list-item", "[class*='job-card']"],
+  "listContainer": [".job-list-box", ".job-list", "body"],
+  "fields": {
+    "title": [".job-title", ".job-title-box .job-title", "[class*='job-title']"],
+    "company": [".company-name", ".company-name a", "[class*='company-name']"],
+    "salary": [".job-salary", "[class*='salary']"],
+    "city": [".job-dq-box", "[class*='job-dq-box']", "[class*='address']"],
+    "experience": [".job-qualifications span:nth-child(1)", "[class*='job-qualifications'] span:nth-child(1)"],
+    "education": [".job-qualifications span:nth-child(2)", "[class*='job-qualifications'] span:nth-child(2)"],
+    "tags": { "selector": [".job-labels-box span", ".labels-tag", "[class*='labels-box'] span"], "all": true },
+    "hrName": [".recruiter-name", "[class*='recruiter'] [class*='name']"],
+    "hrActive": [".recruiter-active", "[class*='recruiter'] [class*='active']"],
+    "description": [".job-intro-container", "[class*='job-intro']"]
+  },
+  "detailFields": {
+    "title": [".name-box .name", "h1[class*='name']"],
+    "company": [".company-info .name", "[class*='company-name']"],
+    "salary": [".salary", "[class*='salary']"],
+    "city": [".basic-infor .text", "[class*='basic-infor']"],
+    "description": [".job-intro-container", ".paragraph", "[class*='job-intro']"]
+  },
+  "link": { "selector": [".job-title", ".job-title-box a", "a"], "attr": "href" },
+  "jobId": {
+    "from": "href",
+    "pattern": "/job/(\\d+)\\.shtml"
+  },
+  "apply": {
+    "button": [".btn-apply", "button[class*='apply']", "[class*='btn-chat']", "[class*='contact']"],
+    "input": [".chat-input", "[contenteditable='true']", "textarea"],
+    "send": [".btn-send", "button[class*='send']"]
+  }
+}

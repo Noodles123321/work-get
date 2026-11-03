@@ -1,0 +1,37 @@
+{
+  "name": "work-get",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Work GET — 主流招聘平台求职助手（浏览器扩展）",
+  "scripts": {
+    "dev": "wxt",
+    "dev:edge": "wxt -b edge",
+    "build": "wxt build",
+    "build:edge": "wxt build -b edge",
+    "zip": "wxt zip",
+    "compile": "tsc --noEmit",
+    "postinstall": "wxt prepare",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "dexie": "^4.4.7",
+    "mammoth": "^1.13.0",
+    "pdfjs-dist": "^6.5.438",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.7",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@wxt-dev/module-react": "^1.2.2",
+    "fake-indexeddb": "^6.2.7",
+    "jsdom": "^30.1.3",
+    "typescript": "~5.9.0",
+    "vitest": "^5.1.0",
+    "wxt": "^0.21.5"
+  }
+}
