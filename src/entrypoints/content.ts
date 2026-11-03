@@ -180,15 +180,24 @@ function domHint(adapter: PlatformAdapter): unknown {
   // 薪资数字有时被站点用伪元素/属性渲染，textContent 只剩 "-K"；这里把能读到的都摊开。
   const salaryEl = card.querySelector('.job-salary');
   const salaryProbe = salaryEl
-    ? {
-        html: salaryEl.outerHTML.slice(0, 600),
-        text: salaryEl.textContent ?? '',
-        innerText: (salaryEl as HTMLElement).innerText ?? '',
-        attrs: Array.from(salaryEl.attributes).map((a) => `${a.name}=${a.value}`),
-        before: getComputedStyle(salaryEl, '::before').content,
-        after: getComputedStyle(salaryEl, '::after').content,
-        parentHtml: (salaryEl.parentElement?.outerHTML ?? '').slice(0, 900),
-      }
+    ? (() => {
+        const text = salaryEl.textContent ?? '';
+        const style = getComputedStyle(salaryEl);
+        return {
+          html: salaryEl.outerHTML.slice(0, 600),
+          text,
+          length: text.length,
+          codepoints: Array.from(text).map((ch) => ch.codePointAt(0)?.toString(16)),
+          attrs: Array.from(salaryEl.attributes).map((a) => `${a.name}=${a.value}`),
+          before: getComputedStyle(salaryEl, '::before').content,
+          after: getComputedStyle(salaryEl, '::after').content,
+          fontFamily: style.fontFamily,
+          fontSize: style.fontSize,
+          color: style.color,
+          childNodes: Array.from(salaryEl.childNodes).map((n) => `${n.nodeType}:${n.nodeName}`),
+          parentHtml: (salaryEl.parentElement?.outerHTML ?? '').slice(0, 900),
+        };
+      })()
     : null;
   return {
     tag: card.tagName.toLowerCase(),
