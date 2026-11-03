@@ -3,6 +3,7 @@ import {
   buildDedupeKey,
   buildFamilyKey,
   cleanText,
+  decodeSalaryGlyphs,
   formatSalary,
   mergeJob,
   normalizeCompany,
@@ -81,6 +82,30 @@ describe('parseSalary', () => {
 
   it('原文保留', () => {
     expect(parseSalary('15-25K')?.raw).toBe('15-25K');
+  });
+});
+
+describe('decodeSalaryGlyphs（BOSS 私有区数字）', () => {
+  const glyph = (...codes: number[]) => String.fromCharCode(...codes);
+
+  it('按 U+E031 起算还原本地数字', () => {
+    // BOSS 现网：9-12K 存成 E03A '-' E032 E033 'K'
+    expect(decodeSalaryGlyphs(glyph(0xe03a, 0x2d, 0xe032, 0xe033, 0x4b))).toBe('9-12K');
+    expect(decodeSalaryGlyphs(glyph(0xe031))).toBe('0');
+  });
+
+  it('保留普通数字与其它字符', () => {
+    expect(decodeSalaryGlyphs('200-300元/天')).toBe('200-300元/天');
+    expect(decodeSalaryGlyphs('')).toBe('');
+    expect(decodeSalaryGlyphs(undefined)).toBe('');
+  });
+
+  it('解码后 parseSalary 拿到正确区间与薪数', () => {
+    const decoded = parseSalary(glyph(0xe03a, 0x2d, 0xe032, 0xe033, 0x4b));
+    expect(decoded).toMatchObject({ min: 9000, max: 12000, unit: 'month' });
+
+    const withMonths = parseSalary(`15-25K·${glyph(0xe032, 0xe035)}薪`);
+    expect(withMonths).toMatchObject({ min: 15000, max: 25000, months: 14 });
   });
 });
 

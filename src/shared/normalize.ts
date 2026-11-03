@@ -15,12 +15,26 @@ export function cleanText(input: string | null | undefined): string {
 const UNIT_SUFFIX: Record<string, number> = { k: 1_000, 千: 1_000, w: 10_000, '万': 10_000 };
 
 /**
+ * BOSS 直聘把薪资里的数字替换成 Unicode 私有区字符（U+E031–U+E03A，对应 0–9），
+ * 再用自家字体 `kanzhun-mix` 画成数字，DOM 里拿不到明文。这里按码点还原。
+ */
+const GLYPH_ZERO = 0xe031;
+const GLYPH_RANGE = /[\ue031-\ue03a]/g;
+
+export function decodeSalaryGlyphs(input: string | null | undefined): string {
+  if (!input) return '';
+  return input.replace(GLYPH_RANGE, (ch) =>
+    String.fromCharCode(ch.charCodeAt(0) - GLYPH_ZERO + 0x30),
+  );
+}
+
+/**
  * 解析招聘网站上的薪资文案。
  * 覆盖：`15-25K·14薪`、`1.5-2万`、`8千-1.2万`、`200-300元/天`、
  *      `6000-8000元/月`、`年薪30-50万`、`15000-20000`、`面议`。
  */
 export function parseSalary(input: string | null | undefined): Salary | undefined {
-  const raw = cleanText(input);
+  const raw = cleanText(decodeSalaryGlyphs(input));
   if (!raw) return undefined;
   if (/面议|保密|薪资面谈|详见/.test(raw) && !/\d/.test(raw)) return undefined;
 
